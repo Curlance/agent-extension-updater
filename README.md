@@ -1,14 +1,30 @@
-# agent-extension-updater
-
-**中文** | [English](README.en.md)
-
-为 AI Agent 的技能（skills）和插件（plugins）提供统一的维护流程：**盘点安装情况、检查更新、备份文件、执行更新并验证结果**。
+<div align="center">
+  <img src="assets/logo.svg" alt="agent-extension-updater" width="96" height="96">
+  <h1>agent-extension-updater</h1>
+  <p>
+    <b>为 AI Agent 的技能（skills）与插件（plugins）提供统一的维护流程</b><br>
+    盘点安装情况 → 检查更新 → 备份文件 → 执行更新 → 验证结果
+  </p>
+  <p><a href="README.md">简体中文</a> | <a href="README.en.md">English</a></p>
+  <p>
+    <a href="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml"><img src="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <img src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&amp;logoColor=white" alt="Node.js 18+">
+    <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-2563eb" alt="Windows | Linux">
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-4f46e5" alt="PolyForm Noncommercial 1.0.0"></a>
+  </p>
+  <p>
+    <a href="#快速开始">快速开始</a> ·
+    <a href="#当前支持范围">支持范围</a> ·
+    <a href="#作为-agent-skill-安装">安装为 Skill</a> ·
+    <a href="#备份与恢复">备份与恢复</a> ·
+    <a href="#开发与测试">开发与测试</a> ·
+    <a href="docs/DESIGN.md">设计说明</a> ·
+    <a href="CHANGELOG.md">变更记录</a>
+  </p>
+  <p><img src="assets/flow.svg" alt="扩展维护流程：盘点 → 检查上游 → 确认范围 → 备份 → 更新 → 验证" width="820"></p>
+</div>
 
 项目包含一份可被支持 Agent Skills 的客户端加载的技能，以及可独立运行的 Node.js 命令行工具。你可以让 Agent 按流程协助维护，也可以直接运行脚本检查扩展状态。
-
-```text
-盘点 → 检查来源与版本 → 确认范围 → 备份 → 更新 → 验证与报告
-```
 
 ## 能做什么
 
@@ -124,7 +140,7 @@ node skills/agent-extension-updater/scripts/auto-update.mjs --disable
 
 > 查看上次更新记录，告诉我哪些文件已更新，哪些仍需重载。
 
-## 备份、恢复与验证
+## 备份与恢复
 
 默认配置文件为 `~/.agent-extension-updater/config.json`。设置环境变量 `AGENT_EXTENSION_UPDATER_CONFIG` 可以更换位置；备份、日志和锁文件随配置存放在同一父目录。
 
@@ -185,16 +201,24 @@ skills/agent-extension-updater/
     ├── lib.mjs              # 版本、Git、备份与验证
     └── check-skill.mjs      # 技能结构检查
 tests/updater.test.mjs
+assets/                    # 徽标与流程图
 docs/DESIGN.md
 README.md
 README.en.md
 CHANGELOG.md
+LICENSE
 ```
 
 - [技能入口](skills/agent-extension-updater/SKILL.md)
 - [设计说明](docs/DESIGN.md)
 - [变更记录](CHANGELOG.md)
 
-项目仍在开发中，以 [PolyForm Noncommercial 1.0.0](LICENSE) 许可发布：**仅限非商业用途**。个人学习、研究、教育、慈善及政府机构使用无需授权；任何商业用途（含公司内部业务使用）需另行取得授权。
+## 许可证
+
+以 [PolyForm Noncommercial 1.0.0](LICENSE) 许可发布：**仅限非商业用途**。
+
+- **允许**：个人学习、研究、实验、私人娱乐与业余爱好；教育机构、慈善组织、公共研究机构、公共卫生与安全机构、环保组织及政府机构使用，不论其资金来源。
+- **禁止**：任何商业用途，包括公司内部业务使用；商业使用需另行取得授权。
+- **分发义务**：转交他人时须附带许可证全文（或[原始链接](https://polyformproject.org/licenses/noncommercial/1.0.0)）以及下面的署名行。
 
 Required Notice: Copyright Curlance (https://github.com/Curlance)

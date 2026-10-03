@@ -1,111 +1,127 @@
-# agent-extension-updater
+<div align="center">
+  <img src="assets/logo.svg" alt="agent-extension-updater" width="96" height="96">
+  <h1>agent-extension-updater</h1>
+  <p>
+    <b>A unified maintenance workflow for AI agent skills and plugins</b><br>
+    Inventory installed extensions → Check for updates → Back up files → Apply updates → Verify results
+  </p>
+  <p><a href="README.md">简体中文</a> | <a href="README.en.md">English</a></p>
+  <p>
+    <a href="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml"><img src="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <img src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&amp;logoColor=white" alt="Node.js 18+">
+    <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-2563eb" alt="Windows | Linux">
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-4f46e5" alt="PolyForm Noncommercial 1.0.0"></a>
+  </p>
+  <p>
+    <a href="#quick-start">Quick start</a> ·
+    <a href="#current-support">Current support</a> ·
+    <a href="#install-as-an-agent-skill">Install as a Skill</a> ·
+    <a href="#backup-and-recovery">Backup and recovery</a> ·
+    <a href="#development-and-tests">Development and tests</a> ·
+    <a href="docs/DESIGN.md">Design notes</a> ·
+    <a href="CHANGELOG.md">Changelog</a>
+  </p>
+  <p><img src="assets/flow.svg" alt="Extension maintenance flow: inventory → check upstream → confirm scope → back up → update → verify" width="820"></p>
+</div>
 
-[中文](README.md) | **English**
-
-A maintenance workflow for AI agent **skills and plugins**: inventory installed extensions, check for updates, back up files, apply updates, and verify the results.
-
-The project includes a skill that clients supporting Agent Skills can load, plus standalone Node.js command-line tools. You can ask an agent to guide the maintenance process or run the scripts directly.
-
-```text
-Inventory → Check sources and versions → Confirm scope → Back up → Update → Verify and report
-```
+The project provides a skill that clients supporting Agent Skills can load, plus a standalone Node.js command-line tool. You can have an agent assist with the workflow, or run the scripts directly to check extension status.
 
 ## What it does
 
-- **Shows what is installed:** lists each extension's host, name, path, channel, current version, and check result.
-- **Reports distinct outcomes:** separates available updates, up-to-date installations, failed checks, unknown sources, and unsupported integrations.
-- **Updates eligible Git extensions:** pins the remote, tracking branch, and target commit, then checks them again before execution.
-- **Preserves recovery data:** backs up the complete skill or plugin directory, verifies file hashes, and supports restoration to a new directory.
-- **Records operations:** logs update targets, backup locations, and verification results.
+- **See the installation situation clearly**: lists each extension's host, name, path, channel, current version, and check result.
+- **Distinguish update states**: reports updates available, up to date, check failed, no source, and pending adaptation separately.
+- **Update eligible Git extensions**: pins the remote, tracking branch, and target commit, and re-checks before execution.
+- **Preserve the basis for recovery**: fully backs up the skill or plugin directory and verifies file hashes, and supports restoring to a new directory.
+- **Leave an operation record**: records update targets, backup locations, and verification results for later tracing.
 
-The scope is limited to skills and plugins. It does not manage the agent application itself, standalone MCP services, models, or the operating system.
+This project maintains skills and plugins only. It does not manage the agent client itself, standalone MCP services, models, or the operating system.
 
 ## Current support
 
-The skill documentation provides guidance for several hosts. The table below describes what the scripts currently implement. **Discovering an extension does not mean its update channel is automated.**
+The skill documentation provides multi-host maintenance guidance; the capabilities the scripts already implement are listed below. **Being able to discover an extension does not mean automatic updates are already supported for that channel.**
 
 | Host or channel | Inventory and checks | Automatic execution |
 | --- | --- | --- |
-| DeepSeek Harness (DSH) | User and project skills; profile plugin dependencies; installed and upstream npm versions | Eligible standalone Git skills and local Git plugins |
-| Codex | User and project `.agents/skills` directories; Git source detection | Eligible standalone Git skills |
-| Claude Code | User and project skills; Git source detection | Eligible standalone Git skills |
-| Hermes | Classification of Hub, bundled, and local skills; plugin directory enumeration | Eligible standalone local Git skills; Hub and plugin protocols remain unsupported |
-| Other hosts | General maintenance guidance; no dedicated scanner yet | Requires an adapter for the installation method |
+| DeepSeek Harness (DSH) | User-level and project-level skills; profile plugin dependencies; actual installed npm version and upstream version | Eligible standalone Git skills and local Git plugins |
+| Codex | User-level and project-level `.agents/skills`; detects a skill's Git source | Eligible standalone Git skills |
+| Claude Code | User-level and project-level skills; detects a skill's Git source | Eligible standalone Git skills |
+| Hermes | Distinguishes Hub, bundled, and local skills; enumerates plugin directories | Eligible standalone local Git skills; Hub and plugin protocols await adaptation |
+| Other hosts | General maintenance guidance; no dedicated scanner yet | Requires adaptation to the actual installation method |
 
-The scripts explicitly report that Codex and Claude Code plugin installation records and update protocols are not yet supported. DSH npm plugins receive version checks only; updating them requires manual handling after the host exits.
+Plugin installation records and update protocols for Codex and Claude Code do not have adapters yet, and the scripts say so explicitly. DSH npm plugins are version-checked only; updating them is left to manual handling after exiting the host.
 
-### Eligibility for automatic updates
+### Which projects can be updated automatically
 
-Automatic updating is disabled by default. Once enabled, an extension must still meet all of these conditions:
+The automatic-update switch is off by default. Once enabled, an item must still satisfy all of the following conditions at the same time:
 
-1. Its host and type are within the authorized scope, and it is not excluded.
-2. Its directory is the root of a standalone Git repository with a clean working tree.
-3. Its installed version is readable; the target commit has a unique semantic-version tag, and the version declared in its contents matches that tag.
-4. The target is not a major-version upgrade, downgrade, or prerelease.
-5. The backup passes verification; the remote, branch, and target remain unchanged; the update can fast-forward.
+1. It belongs to an authorized host and type and is not excluded.
+2. The extension directory is itself the root of a standalone Git repository, with no local modifications in the working tree.
+3. The current version can be read; the target commit has a unique semantic-version tag, and the version declared in the contents matches that tag.
+4. It does not involve a major-version upgrade, a version downgrade, or a prerelease target.
+5. The backup passes verification; the remote, branch, and target are unchanged; the update can complete as a fast-forward.
 
-Subdirectories of shared repositories, Git worktrees, symbolic links/junctions, and unknown versions require manual handling. Version checks do not establish behavioral compatibility.
+Subdirectories of shared repositories, Git worktrees, symbolic links/junctions, and unknown versions are left for manual handling. A version-number check is not a substitute for a compatibility assessment.
 
 ## Quick start
 
 ### Requirements
 
-- **Node.js 18+:** the scripts use built-in modules only. No `npm install` is needed.
-- **Git:** required for Git source detection, commit checks, and Git updates.
-- **npm:** required when querying upstream versions of npm plugins.
+- **Node.js 18+**: the scripts use built-in modules only; no `npm install` is needed.
+- **Git**: used to detect Git sources, check commits, and perform Git updates.
+- **npm**: needed when checking upstream versions of npm plugins.
 
-Run the following commands from the repository root. The scripts currently display human-readable messages and status values in Chinese; this English README does not change their output language.
+Run the following commands from the project root.
 
-### 1. Inventory and check
+### 1. Inventory and check first
 
 ```bash
-# Local inventory, without network queries
+# 本地盘点，不查询网络
 node skills/agent-extension-updater/scripts/inventory.mjs --all
 
-# Check upstream status for Codex skills only
+# 只检查 Codex 技能的上游状态
 node skills/agent-extension-updater/scripts/inventory.mjs --hosts codex --check-updates
 
-# Choose a project directory and return JSON
+# 指定项目目录，并输出 JSON
 node skills/agent-extension-updater/scripts/inventory.mjs --hosts codex --project "./your-project" --json
 ```
 
-Without `--hosts`, the scanner checks all implemented hosts. Accepted values are `dsh`, `hermes`, `codex`, and `claude`, separated by commas. `--json` changes only the output format; add `--check-updates` to query upstream sources.
+Without `--hosts`, all implemented hosts are scanned; `dsh`, `hermes`, `codex`, and `claude` are supported, and multiple values are separated by commas. `--json` changes only the output format; network checks still require `--check-updates`.
 
-### 2. Set the scope and preview
+### 2. Set the scope and rehearse
 
 ```bash
-# Inspect the switch; it is disabled by default
+# 查看开关，默认关闭
 node skills/agent-extension-updater/scripts/auto-update.mjs --status
 
-# Save the scope and enable the switch; this command does not update extensions
+# 保存自动更新范围并启用开关；此命令本身不更新扩展
 node skills/agent-extension-updater/scripts/auto-update.mjs --enable --hosts codex
 
-# Preview the current plan without applying updates
+# 查看本轮会做什么，不执行更新
 node skills/agent-extension-updater/scripts/auto-update.mjs --run --dry-run
 ```
 
-Use `--hosts` with `--enable` to save the scope. Actual runs and previews read that scope from the configuration. A shared skill directory requires all identified consuming hosts to be authorized, such as a directory used by both DSH and Codex.
+`--hosts` is used with `--enable` to save the scope; actual runs and rehearsals read the scope from the configuration. A shared skill directory requires every identified consuming host to be within the authorized scope, for example a directory used by both DSH and Codex.
 
-A preview queries upstream sources but does not write extension files, backups, locks, or this tool's audit log. npm queries may update npm's own cache. Previews also work while the switch is disabled.
+A rehearsal queries upstream sources and writes no extensions, backups, locks, or audit logs for this tool; npm queries may update npm's own cache. A rehearsal can also run while the switch is off.
 
-### 3. Apply updates and inspect results
+### 3. Apply and review the results
 
 ```bash
-# Apply eligible updates within the saved scope
+# 按已保存范围实际执行
 node skills/agent-extension-updater/scripts/auto-update.mjs --run
 
-# Read recent audit records
+# 查看最近的审计记录
 node skills/agent-extension-updater/scripts/auto-update.mjs --report
 
-# Disable automatic-update authorization
+# 关闭自动更新授权
 node skills/agent-extension-updater/scripts/auto-update.mjs --disable
 ```
 
-Enabling the switch does not create a scheduled task or start a background service. Each update requires a `--run` invocation, either manually or through a scheduler you configure. For project skills, select the directory with `--run --project "./your-project"`.
+Enabling the switch neither creates a scheduled task nor starts a background service. Every update requires running `--run`, or a call from a scheduler you configure. For project-level skills, you can specify the project directory with `--run --project "./your-project"`.
 
 ## Install as an Agent Skill
 
-Copy the entire [`skills/agent-extension-updater/`](skills/agent-extension-updater/) directory into the host's skill directory. Keep `SKILL.md`, `references/`, `templates/`, and `scripts/`, including the shared `lib.mjs` module.
+Copy the entire [`skills/agent-extension-updater/`](skills/agent-extension-updater/) directory into the host's skill directory, keeping `SKILL.md`, `references/`, `templates/`, and `scripts/`, including the shared `lib.mjs` module.
 
 | Host | User-level installation location |
 | --- | --- |
@@ -114,62 +130,62 @@ Copy the entire [`skills/agent-extension-updater/`](skills/agent-extension-updat
 | Codex | `~/.agents/skills/agent-extension-updater/` |
 | Claude Code | `~/.claude/skills/agent-extension-updater/` |
 
-Use the host's actual configuration to determine installation paths and reload behavior. Start a new session or reload skills when needed. The installed skill needs local file access and command execution capabilities to maintain local extensions.
+The installation directory and reload method are governed by the host's actual configuration; start a new session or reload skills when needed. Once installed, the skill needs local file access and command execution capabilities to maintain extensions on this machine.
 
-You can then ask:
+You can then ask in natural language:
 
-> Use agent-extension-updater to check skills and plugins for the current host only. List update sources, target versions, and items that need manual handling.
+> Use agent-extension-updater to check only the skills and plugins of the current host, and list update sources, target versions, and items that need manual handling.
 
 Or:
 
-> Review the last update log and tell me which files were updated and which extensions still need to be reloaded.
+> Review the last update record and tell me which files were updated and which still need to be reloaded.
 
-## Backup, recovery, and verification
+## Backup and recovery
 
-The default configuration file is `~/.agent-extension-updater/config.json`. Set `AGENT_EXTENSION_UPDATER_CONFIG` to use a different location. Backups, logs, and the lock file are stored alongside the configuration.
+The default configuration file is `~/.agent-extension-updater/config.json`. Setting the `AGENT_EXTENSION_UPDATER_CONFIG` environment variable changes the location; backups, logs, and lock files are stored with the configuration in the same parent directory.
 
 ```text
 .agent-extension-updater/
 ├── config.json
 ├── auto-update.log.jsonl
-├── run.lock                  # Exclusive lock during an actual run
+├── run.lock                  # 实际运行期间的排他锁
 └── backups/
-    └── <run-id>/<extension-id>/
-        ├── files/            # Complete directory snapshot
-        └── record.json       # Original path, commits, and file hashes
+    └── <运行标识>/<扩展身份>/
+        ├── files/            # 完整目录副本
+        └── record.json       # 原路径、提交及文件哈希
 ```
 
-Restore a backup to a new directory that does not already exist:
+Restore a backup to a new directory that does not exist yet:
 
 ```bash
 node skills/agent-extension-updater/scripts/auto-update.mjs --restore "./path/to/record.json" --to "./recovered-extension"
 ```
 
-File hashes are checked before and after restoration. The command does not overwrite the current installation. Inspect the restored contents, then reconnect them using the host's supported installation process.
+File hashes are verified both before and after restoration. The command does not overwrite the current installation; after reviewing the restored contents, reconnect it to the installation location as the host requires.
 
 The update workflow follows these rules:
 
-- Any failed item check or directory scan stops the entire update run and returns a nonzero exit code.
-- A failed backup or an unwritable audit log before an update prevents that item from executing.
-- Verification reads the exact path, commit, version, and skill name before recording success. Execution or verification failures stop the remaining updates in the run.
-- Success is recorded as **“已落盘待重载” — files updated, reload pending**. This does not confirm that the host has loaded the extension or that its behavior is compatible.
-- The lock coordinates only processes using the same configuration directory. A lock left behind after a crash requires manual inspection before removal.
+- If any item or directory-scan check fails, the entire run of updates stops and returns a nonzero exit code.
+- If a backup fails or the pre-update audit record cannot be written, that item's update is not performed.
+- After an update, the commit, version, and skill name are re-checked by exact path, and success is recorded only if that passes; a failed execution or verification stops the remaining updates in the run.
+- The success state is **“已落盘待重载”** (“written to disk, reload pending”), which does not mean the host has already loaded it, nor that the extension's behavior is compatible.
+- The lock file only coordinates processes that use the same configuration directory; a leftover lock after an abnormal process exit requires manual verification before it is handled.
 
-See the [automatic-update specification](skills/agent-extension-updater/references/auto-update.md) for the full rules. Supporting technical documents are currently in Chinese.
+See the [automatic-update specification](skills/agent-extension-updater/references/auto-update.md) for the complete rules.
 
 ## Development and tests
 
 ```bash
-# Check skill structure, frontmatter, and documentation links
+# 技能结构、frontmatter 和文档链接检查
 node skills/agent-extension-updater/scripts/check-skill.mjs skills/agent-extension-updater
 
-# Run isolated regression tests
+# 隔离回归测试
 node --test tests/updater.test.mjs
 ```
 
-Tests use temporary directories and local Git repositories. They cover complete update and recovery flows, branch and remote changes, version detection, local edits, backup failures, verification failures, and audit errors. They require neither a real host installation nor network access.
+Tests use temporary directories and local Git repositories and cover the full update and recovery flow, branch and remote changes, version misjudgement, local modifications, backup failures, verification failures, and audit faults, with no need to connect to a real host or access the network.
 
-CI is configured for Windows/Linux and Node.js 18/22. Local Git tests do not replace upgrade testing and runtime validation in real hosts.
+CI is configured with a Windows/Linux and Node.js 18/22 matrix. Local Git tests are not a substitute for upgrade and runtime acceptance in a real host.
 
 ## Project layout and documentation
 
@@ -177,24 +193,32 @@ CI is configured for Windows/Linux and Node.js 18/22. Local Git tests do not rep
 skills/agent-extension-updater/
 ├── SKILL.md
 ├── README.md
-├── references/              # Host guidance and automatic-update rules
-├── templates/               # Confirmation and result-report templates
+├── references/              # 宿主说明与自动更新规则
+├── templates/               # 确认与结果报告模板
 └── scripts/
-    ├── inventory.mjs        # Inventory and upstream checks
-    ├── auto-update.mjs      # Configuration, execution, audit, and recovery entry point
-    ├── lib.mjs              # Versions, Git, backups, and verification
-    └── check-skill.mjs      # Skill structure checks
+    ├── inventory.mjs        # 盘点与上游检查
+    ├── auto-update.mjs      # 开关、执行、审计与恢复入口
+    ├── lib.mjs              # 版本、Git、备份与验证
+    └── check-skill.mjs      # 技能结构检查
 tests/updater.test.mjs
+assets/                    # 徽标与流程图
 docs/DESIGN.md
 README.md
 README.en.md
 CHANGELOG.md
+LICENSE
 ```
 
 - [Skill entry point](skills/agent-extension-updater/SKILL.md)
 - [Design notes](docs/DESIGN.md)
 - [Changelog](CHANGELOG.md)
 
-The project is under development and is released under the [PolyForm Noncommercial License 1.0.0](LICENSE): **noncommercial use only**. Personal study, research, education, charity and government use need no permission; any commercial use, including internal business use, requires separate authorization.
+## License
+
+Released under the [PolyForm Noncommercial 1.0.0](LICENSE) license: **noncommercial use only**.
+
+- **Permitted**: personal study, research, experimentation, private entertainment, and hobbies; use by educational institutions, charitable organizations, public research institutions, public health and safety institutions, environmental organizations, and government institutions, regardless of their funding source.
+- **Forbidden**: any commercial use, including internal business use; commercial use requires separate authorization.
+- **Distribution obligation**: when passing it on to others, you must include the full license text (or the [original link](https://polyformproject.org/licenses/noncommercial/1.0.0)) together with the notice line below.
 
 Required Notice: Copyright Curlance (https://github.com/Curlance)

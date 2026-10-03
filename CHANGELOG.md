@@ -7,6 +7,7 @@
 ### 新增
 
 - 以 [PolyForm Noncommercial 1.0.0](LICENSE) 许可发布：仅限非商业用途，商业使用需另行取得授权；中英文 README 同步更新许可证说明。
+- README 改为徽章式首页：居中标题、状态徽章、导航与流程图；新增 `assets/logo.svg` 与 `assets/flow.svg`。
 
 ### 修复
 
