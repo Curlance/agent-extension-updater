@@ -32,7 +32,7 @@
 
 ## 安装
 
-技能 = 一个文件夹。**必须整个复制**（`SKILL.md` + `references/` + `templates/` + `scripts/`），只复制 `SKILL.md` 会断掉文档链路。
+技能 = 一个文件夹。**必须整个复制** `skills/agent-extension-updater/`（含 `SKILL.md` + `references/` + `templates/` + `scripts/`），只复制 `SKILL.md` 会断掉文档链路。
 
 | 宿主 | 用户级目录 | 项目级目录 |
 | --- | --- | --- |
@@ -65,18 +65,18 @@
 
 ```bash
 # 盘点：哪些有更新、在哪里更新（只读）
-node agent-extension-updater/scripts/inventory.mjs --check-updates
-node agent-extension-updater/scripts/inventory.mjs --all          # 展开无上游的本地技能
-node agent-extension-updater/scripts/inventory.mjs --json         # 机器可读
+node skills/agent-extension-updater/scripts/inventory.mjs --check-updates
+node skills/agent-extension-updater/scripts/inventory.mjs --all     # 展开无上游的本地技能
+node skills/agent-extension-updater/scripts/inventory.mjs --json    # 机器可读
 
 # 自动更新开关（默认关闭）
-node agent-extension-updater/scripts/auto-update.mjs --status
-node agent-extension-updater/scripts/auto-update.mjs --enable
-node agent-extension-updater/scripts/auto-update.mjs --run --dry-run
-node agent-extension-updater/scripts/auto-update.mjs --report
+node skills/agent-extension-updater/scripts/auto-update.mjs --status
+node skills/agent-extension-updater/scripts/auto-update.mjs --enable
+node skills/agent-extension-updater/scripts/auto-update.mjs --run --dry-run
+node skills/agent-extension-updater/scripts/auto-update.mjs --report
 
 # 技能结构自检
-node agent-extension-updater/scripts/check-skill.mjs agent-extension-updater
+node skills/agent-extension-updater/scripts/check-skill.mjs skills/agent-extension-updater
 ```
 
 三个脚本均为**零依赖、Node 18+**，除 `--check-updates` / `--run` 外不联网、不写盘。
@@ -102,35 +102,43 @@ node agent-extension-updater/scripts/check-skill.mjs agent-extension-updater
 ## 目录结构
 
 ```
-agent-extension-updater/          # 技能本体（复制这个目录即可安装）
-├── SKILL.md                      # 主流程（宿主 Agent 的入口）
-├── README.md                     # 技能自述
-├── references/                   # 按宿主选读
-│   ├── dsh.md                    #   DeepSeek Harness 适配
-│   ├── hermes.md                 #   Hermes 适配
-│   ├── codex.md                  #   Codex 适配
-│   ├── claude-code.md            #   Claude Code 适配
-│   ├── generic-agent.md          #   通用宿主 / 能力分级
-│   └── auto-update.md            #   自动更新开关规范
-├── templates/
-│   ├── confirmation.md           # 更新确认清单模板
-│   └── report.md                 # 更新结果报告模板
-└── scripts/
-    ├── inventory.mjs             # 只读盘点：哪些有更新、在哪里更新
-    ├── auto-update.mjs           # 按开关自动更新（本体永不涉及）
-    └── check-skill.mjs           # 技能自检：frontmatter、相对链接、可移植性
+skills/                           # ← 可安装单元都在这里，一个目录 = 一个技能
+└── agent-extension-updater/      #    复制这个目录到宿主的技能目录即可安装
+    ├── SKILL.md                  #    主流程（宿主 Agent 的入口）
+    ├── README.md                 #    技能自述
+    ├── references/               #    按宿主选读
+    │   ├── dsh.md                #      DeepSeek Harness 适配
+    │   ├── hermes.md             #      Hermes 适配
+    │   ├── codex.md              #      Codex 适配
+    │   ├── claude-code.md        #      Claude Code 适配
+    │   ├── generic-agent.md      #      通用宿主 / 能力分级
+    │   └── auto-update.md        #      自动更新开关规范
+    ├── templates/
+    │   ├── confirmation.md       #      更新确认清单模板
+    │   └── report.md             #      更新结果报告模板
+    └── scripts/
+        ├── inventory.mjs         #      只读盘点：哪些有更新、在哪里更新
+        ├── auto-update.mjs       #      按开关自动更新（本体永不涉及）
+        └── check-skill.mjs       #      技能自检：frontmatter、相对链接、可移植性
+
+README.md                         # 本文件：项目说明
+CHANGELOG.md                      # 版本变更记录
+docs/DESIGN.md                    # 设计说明：范围 / 支持矩阵 / 护栏 / 限制
+.github/workflows/ci.yml          # CI
 ```
 
 ## 开发
 
 ```bash
 # 与 CI 相同的检查
-node --check agent-extension-updater/scripts/inventory.mjs
-node --check agent-extension-updater/scripts/auto-update.mjs
-node --check agent-extension-updater/scripts/check-skill.mjs
-node agent-extension-updater/scripts/check-skill.mjs agent-extension-updater
-node agent-extension-updater/scripts/inventory.mjs --json
+node --check skills/agent-extension-updater/scripts/inventory.mjs
+node --check skills/agent-extension-updater/scripts/auto-update.mjs
+node --check skills/agent-extension-updater/scripts/check-skill.mjs
+node skills/agent-extension-updater/scripts/check-skill.mjs skills/agent-extension-updater
+node skills/agent-extension-updater/scripts/inventory.mjs --json
 ```
+
+新增一个技能：在 `skills/` 下建 `<skill-name>/` 并放入 `SKILL.md`（frontmatter 必填 `name` 与 `description`，`name` 需与目录名一致且为小写连字符）。CI 会自动检查每个技能目录都有 `SKILL.md`。提交前用 `check-skill.mjs` 自检一次。
 
 改技能内容后务必跑一次 `check-skill.mjs`：宿主的技能发现会因为 frontmatter 非法而**静默丢弃**整个技能，模型侧看不到诊断。
 
