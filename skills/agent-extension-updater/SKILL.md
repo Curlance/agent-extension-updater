@@ -123,7 +123,7 @@ node scripts/inventory.mjs --json            # 机器可读（便于二次处理
 
 **默认流程**：定时的任务只做**只读盘点**，产出待确认清单，并按「客户端 + 实际路径 + 目标版本」去重通知。调度器不能交互时**只检查、只排队**。
 
-**可选：自动更新开关**（默认关闭）。打开后，作用域内、无破坏性变更的技能与插件会被自动更新，不再逐项询问。规范、四条不可配置的硬护栏、备份与审计日志见 [references/auto-update.md](references/auto-update.md)。
+**可选：自动更新开关**（默认关闭）。打开后，仅执行作用域内且通过完整护栏的独立 Git 扩展更新；当前与目标版本都必须可验证，目标提交需唯一语义版本标签。版本号不能证明行为兼容。Hub、共享仓库子目录及尚未适配的渠道只列待人工处理。规范、不可配置的硬护栏、备份与审计日志见 [references/auto-update.md](references/auto-update.md)。
 
 ```bash
 node scripts/auto-update.mjs --status     # 看开关状态与作用域

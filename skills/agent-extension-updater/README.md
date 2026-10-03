@@ -6,6 +6,8 @@
 
 不单独维护 MCP，不升级模型或操作系统，不替用户做未授权的改动。
 
+当前自动执行仅覆盖版本明确、工作区干净的独立 Git 技能或 DSH 本地插件；目标需有唯一语义版本标签。Hub、未适配插件协议、共享大仓库、worktree 和未知版本只列出待人工处理。完整条件见 [自动更新规范](references/auto-update.md)。
+
 - 技能入口：[SKILL.md](SKILL.md)（宿主 agent 读这个文件）
 - 规则全文：[references/](references/)（按宿主选读一份）
 - 交互模板：[templates/](templates/)
@@ -22,7 +24,7 @@
 
 ## 安装
 
-技能 = **一个文件夹**。必须整个复制（`SKILL.md` + `references/` + `templates/`），只复制 `SKILL.md` 会断掉文档链路。
+技能 = **一个文件夹**。必须整个复制（`SKILL.md` + `references/` + `templates/` + `scripts/`，含共享模块 `lib.mjs`），只复制 `SKILL.md` 会断掉文档链路。
 
 | 宿主 | 用户级目录 | 项目级目录 |
 | --- | --- | --- |
@@ -100,7 +102,8 @@ agent-extension-updater/
 └── scripts/
     ├── check-skill.mjs       # 技能自检：frontmatter、相对链接、可移植性
     ├── inventory.mjs         # 只读盘点：各宿主的技能/插件有哪些更新、在哪里更新
-    └── auto-update.mjs       # 按开关自动更新技能与插件（本体永不涉及）
+    ├── auto-update.mjs       # 按开关自动更新技能与插件（本体永不涉及）
+    └── lib.mjs               # 固定目标、版本比较、备份、恢复与验证
 ```
 
 ## 脚本
@@ -112,24 +115,23 @@ node scripts/inventory.mjs --check-updates   # 联网探测上游版本（只读
 node scripts/inventory.mjs                   # 纯本地盘点（不联网）
 node scripts/inventory.mjs --all             # 连"无上游的本地技能"也逐条列出
 node scripts/inventory.mjs --json            # 机器可读
-node scripts/inventory.mjs --hosts dsh,hermes --dsh-install "<DSH 安装目录>"
+node scripts/inventory.mjs --hosts dsh,hermes --project "<项目目录>"
 ```
 
-输出一张表：**宿主 / 类型 / 名称 / 渠道 / 当前 / 最新 / 状态 / 在哪里更新 / 位置**。
-默认只显示"有可执行动作"的条目，无上游的本地技能与随包内置项会被折叠计数。
+输出宿主、类型、名称、当前与目标版本、状态、位置及原因；JSON 输出还包含渠道、来源和结构化更新目标。默认折叠无来源项，可用 `--all` 展开。
 
 覆盖的检查渠道：
 
 | 类型 | 检查方式 |
 | --- | --- |
-| DSH 插件（npm） | `npm view <pkg> version` |
-| DSH 插件（`link:` Git） | `git ls-remote`（只读，不写本地 refs） |
-| Hermes 技能 / 插件 | 按 `.bundled_manifest`、`.hub/lock.json` 分类，给出对应更新命令 |
-| Codex / Claude Code | 扫描各自技能与插件目录 |
+| DSH 插件（npm） | 读实际安装的 package.json，使用 `npm view <pkg> version --json` 查询目标；语义版本比较，不降级 |
+| 独立 Git 技能 / DSH 本地插件 | `git ls-remote` 查询实际跟踪分支及版本标签，不写本地 refs |
+| Hermes 技能 / 插件 | 按 `.bundled_manifest`、`.hub/lock.json` 分类；已知 Hub 来源保留为待适配 |
+| Codex / Claude Code | 扫描用户及项目技能目录；插件协议未适配会明确提示 |
 
 ### 自动更新（可选开关，默认关闭）
 
-打开后，作用域内、**无破坏性变更**的技能与插件会被自动更新，不再逐项询问：
+打开后，仅对通过全部护栏的 Git 扩展执行更新；版本比较不能替代兼容性评估：
 
 ```bash
 node scripts/auto-update.mjs --status          # 看状态与作用域
@@ -144,10 +146,10 @@ node scripts/auto-update.mjs --report          # 审计日志摘要
 1. **Agent 本体永不涉及**（配置里误写也拒绝）
 2. 只动状态为`有更新`且带明确更新动作的项
 3. 需要先退出宿主的项（如 DSH 插件）不动，只登记为"待手动"
-4. 主版本跃迁（1.x → 2.x）不动，登记为"需确认"
+4. 主版本跃迁、未知版本、降级和预发布目标不动，登记为"需确认"
 
 开关文件 `~/.agent-extension-updater/config.json`，审计日志 `~/.agent-extension-updater/auto-update.log.jsonl`，
-备份在 `~/.agent-extension-updater/backups/<时间戳>/`。详见 [references/auto-update.md](references/auto-update.md)。
+备份在配置文件父目录的 `backups/` 下。通过 `--restore <record.json> --to <新目录>` 校验并恢复备份，不覆盖现有安装。详见 [references/auto-update.md](references/auto-update.md)。
 
 ### 技能自检
 

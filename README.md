@@ -1,154 +1,198 @@
 # agent-extension-updater
 
-一个可被任何支持 **Agent Skills** 的客户端加载的通用维护技能：**盘点并更新 Agent 的 skills 与 plugins**。
+**中文** | [English](README.en.md)
 
-> **Agent 本体不在范围内**——不检查、不升级、不列入清单。本体升级请走各宿主自己的官方入口。
+为 AI Agent 的技能（skills）和插件（plugins）提供统一的维护流程：**盘点安装情况、检查更新、备份文件、执行更新并验证结果**。
 
+项目包含一份可被支持 Agent Skills 的客户端加载的技能，以及可独立运行的 Node.js 命令行工具。你可以让 Agent 按流程协助维护，也可以直接运行脚本检查扩展状态。
+
+```text
+盘点 → 检查来源与版本 → 确认范围 → 备份 → 更新 → 验证与报告
 ```
-自动检查 → 主动确认 → 备份 → 官方渠道更新 → 逐项验证
-```
 
-## 它解决什么问题
+## 能做什么
 
-| 常见做法的问题 | 本技能的做法 |
-| --- | --- |
-| 模型凭印象编造 `xxx update` 命令 | 只用本机 `--help` 或官方文档确认过的命令；核实不了标"未验证" |
-| 一句"帮我更新"就动手，不知道会改什么 | 先出清单（名称 / 路径 / 来源 / 当前→目标 / 重启影响），再逐项确认 |
-| 把网络失败报成"已是最新" | 状态词表强制区分 `有更新 / 已最新 / 检查失败 / 无来源 / 待适配` |
-| 更新完就宣布成功 | 读回目标版本，区分"已验证生效"与"已落盘待重启" |
-| 覆盖掉用户的本地修改 | 先备份、保留本地修改，禁止 `--force` |
+- **看清安装情况**：列出扩展的宿主、名称、路径、渠道、当前版本及检查结果。
+- **区分更新状态**：分别报告有更新、已最新、检查失败、无来源和待适配。
+- **更新符合条件的 Git 扩展**：固定远端、跟踪分支和目标提交，执行前重新检查。
+- **保留恢复依据**：完整备份技能或插件目录并校验文件哈希，支持恢复到新目录。
+- **留下操作记录**：记录更新目标、备份位置和验证结果，便于追溯。
 
-## 支持范围
+本项目只维护技能与插件，不管理 Agent 客户端本身、独立 MCP 服务、模型或操作系统。
 
-| 宿主 | 技能 | 插件 | 核实程度 |
-| --- | --- | --- | --- |
-| **DeepSeek Harness (DSH)** | ✅ | ✅ `dsh plugin` / profile bundles | 本机源码 + 实测 |
-| **Hermes** | ✅ hub / bundled / local 三类 | ✅ `hermes plugins` | 命令面已核实；真实升级未执行 |
-| **Codex** | ✅ `.agents/skills` | ⚠️ 接口待现场核实 | 官方文档核实；本机未安装 CLI |
-| **Claude Code** | ✅ | ⚠️ 接口未核实 | 只做能力检测，不声称子命令 |
-| **其他宿主** | ✅ | ✅ | 按能力分级：仅网页 / 可读文件 / 可执行命令 / 可调度 |
+## 当前支持范围
 
-明确**不**管理：Agent 本体、MCP 服务、模型、操作系统。
+技能文档提供多宿主维护指引；脚本已经实现的能力如下。**能够发现扩展，不代表已经支持自动更新该渠道。**
 
-## 安装
-
-技能 = 一个文件夹。**必须整个复制** `skills/agent-extension-updater/`（含 `SKILL.md` + `references/` + `templates/` + `scripts/`），只复制 `SKILL.md` 会断掉文档链路。
-
-| 宿主 | 用户级目录 | 项目级目录 |
+| 宿主或渠道 | 盘点与检查 | 自动执行 |
 | --- | --- | --- |
-| DeepSeek Harness | `$DSH_HOME/skills/agent-extension-updater/`（默认 `~/.dsh/skills`） | `<repo>/.dsh/skills/…` |
-| Hermes | `$HERMES_HOME/skills/<分类>/agent-extension-updater/` | 按当前 profile 约定 |
-| Codex | `~/.agents/skills/agent-extension-updater/` | `<repo>/.agents/skills/…` |
-| Claude Code | `~/.claude/skills/agent-extension-updater/` | `<repo>/.claude/skills/…` |
+| DeepSeek Harness（DSH） | 用户级、项目级技能；profile 插件依赖；npm 实际安装版本与上游版本 | 符合条件的独立 Git 技能及本地 Git 插件 |
+| Codex | 用户级与项目级 `.agents/skills`；识别技能的 Git 来源 | 符合条件的独立 Git 技能 |
+| Claude Code | 用户级与项目级技能；识别技能的 Git 来源 | 符合条件的独立 Git 技能 |
+| Hermes | 区分 Hub、内置和本地技能；枚举插件目录 | 符合条件的独立 Git 本地技能；Hub 与插件协议待适配 |
+| 其他宿主 | 提供通用维护指引，尚无专用扫描器 | 需按实际安装方式适配 |
 
-装完多数宿主需要新会话或重启才生效；**DSH 例外**——它监视技能根目录，新增/删除无需重启。
-注意 `~/.agents/skills` 是 **DSH 与 Codex 共用**目录，放进去两个宿主都会看到。
+Codex 和 Claude Code 的插件安装记录与更新协议尚未适配，脚本会明确提示。DSH 的 npm 插件只检查版本，更新留待退出宿主后人工处理。
 
-## 使用
+### 哪些项目可以自动更新
 
-自然语言触发即可（宿主按 `description` 匹配加载）：
+自动更新开关默认关闭。启用后，条目仍须同时满足以下条件：
 
-```text
-检查一下技能和插件的更新
-哪些技能/插件有新版本？在哪里更新？
-把自动更新开关打开
-上次自动更新做了什么？
-```
+1. 属于授权宿主与类型，且未被排除。
+2. 扩展目录就是独立 Git 仓库根目录，工作区没有本地修改。
+3. 当前版本可以读取；目标提交有唯一的语义版本标签，且内容声明的版本与标签一致。
+4. 不涉及主版本升级、版本降级或预发布目标。
+5. 备份校验通过；远端、分支及目标未变化；更新可以快进完成。
 
-或在支持显式调用的宿主里直接点名（DSH / Claude Code 的 `/name` 手势）：
+共享仓库中的子目录、Git worktree、符号链接/junction 和未知版本会留待人工处理。版本号检查不能替代兼容性评估。
 
-```text
-/agent-extension-updater 只检查不更新，给我清单
-```
+## 快速开始
 
-### 三个脚本（可独立使用，不经过 Agent）
+### 环境要求
+
+- **Node.js 18+**：脚本仅使用内置模块，无需 `npm install`。
+- **Git**：用于识别 Git 来源、检查提交及执行 Git 更新。
+- **npm**：检查 npm 插件的上游版本时需要。
+
+以下命令均在项目根目录执行。
+
+### 1. 先盘点和检查
 
 ```bash
-# 盘点：哪些有更新、在哪里更新（只读）
-node skills/agent-extension-updater/scripts/inventory.mjs --check-updates
-node skills/agent-extension-updater/scripts/inventory.mjs --all     # 展开无上游的本地技能
-node skills/agent-extension-updater/scripts/inventory.mjs --json    # 机器可读
+# 本地盘点，不查询网络
+node skills/agent-extension-updater/scripts/inventory.mjs --all
 
-# 自动更新开关（默认关闭）
+# 只检查 Codex 技能的上游状态
+node skills/agent-extension-updater/scripts/inventory.mjs --hosts codex --check-updates
+
+# 指定项目目录，并输出 JSON
+node skills/agent-extension-updater/scripts/inventory.mjs --hosts codex --project "./your-project" --json
+```
+
+不传 `--hosts` 时扫描所有已实现的宿主；支持 `dsh`、`hermes`、`codex`、`claude`，多个值以逗号分隔。`--json` 只改变输出格式，联网检查仍需添加 `--check-updates`。
+
+### 2. 设置范围并演练
+
+```bash
+# 查看开关，默认关闭
 node skills/agent-extension-updater/scripts/auto-update.mjs --status
-node skills/agent-extension-updater/scripts/auto-update.mjs --enable
+
+# 保存自动更新范围并启用开关；此命令本身不更新扩展
+node skills/agent-extension-updater/scripts/auto-update.mjs --enable --hosts codex
+
+# 查看本轮会做什么，不执行更新
 node skills/agent-extension-updater/scripts/auto-update.mjs --run --dry-run
+```
+
+`--hosts` 用于 `--enable` 保存范围；实际运行和演练从配置读取范围。共享技能目录要求所有已识别的使用宿主都在授权范围内，例如同时供 DSH 和 Codex 使用的目录。
+
+演练会查询上游，不写扩展、备份、锁或本工具的审计日志；npm 查询可能更新 npm 自身的缓存。演练也可以在开关关闭时运行。
+
+### 3. 执行并查看结果
+
+```bash
+# 按已保存范围实际执行
+node skills/agent-extension-updater/scripts/auto-update.mjs --run
+
+# 查看最近的审计记录
 node skills/agent-extension-updater/scripts/auto-update.mjs --report
 
-# 技能结构自检
-node skills/agent-extension-updater/scripts/check-skill.mjs skills/agent-extension-updater
+# 关闭自动更新授权
+node skills/agent-extension-updater/scripts/auto-update.mjs --disable
 ```
 
-三个脚本均为**零依赖、Node 18+**，除 `--check-updates` / `--run` 外不联网、不写盘。
+启用开关不会创建定时任务，也不会启动后台服务。每次更新都需要运行 `--run`，或由你配置的调度器调用。项目级技能可以通过 `--run --project "./your-project"` 指定项目目录。
 
-## 安全模型
+## 作为 Agent Skill 安装
 
-### 默认流程的六条红线
+将整个 [`skills/agent-extension-updater/`](skills/agent-extension-updater/) 目录复制到宿主的技能目录，保留 `SKILL.md`、`references/`、`templates/` 和 `scripts/`，包括共享模块 `lib.mjs`。
 
-不猜命令 / 不静默改动 / 不掩盖失败 / 不越权 / 不破坏 / 不假装运行。
-其中最关键的一条：**检查失败不等于"已最新"**，也不等于可以动手。
+| 宿主 | 用户级安装位置 |
+| --- | --- |
+| DeepSeek Harness | `$DSH_HOME/skills/agent-extension-updater/`，默认位于 `~/.dsh/skills/` 下 |
+| Hermes | `$HERMES_HOME/skills/<分类>/agent-extension-updater/` |
+| Codex | `~/.agents/skills/agent-extension-updater/` |
+| Claude Code | `~/.claude/skills/agent-extension-updater/` |
 
-### 自动更新开关的四条硬护栏
+安装目录和重新加载方式以宿主实际配置为准；需要时开启新会话或重载技能。安装后的技能需要本地文件和命令执行能力，才能维护本机扩展。
 
-开关**默认关闭**；打开后作用域内、无破坏性变更的技能与插件会被自动更新。以下四条**写死在代码里，配置文件改不动**：
+随后可以用自然语言请求：
 
-1. **Agent 本体永不涉及**（配置里误写也拒绝）
-2. 只处理状态为`有更新`且带明确更新动作的项
-3. 需要先退出宿主的项（如 DSH 插件）不动，只登记为"待手动"
-4. 主版本跃迁（1.x → 2.x）不动，登记为"需确认"
+> 使用 agent-extension-updater，只检查当前宿主的技能和插件，列出更新来源、目标版本和需要人工处理的项目。
 
-盘点失败时不做任何更新。每次自动更新都写审计日志与备份，见 `references/auto-update.md`。
+或：
 
-## 目录结构
+> 查看上次更新记录，告诉我哪些文件已更新，哪些仍需重载。
 
-```
-skills/                           # ← 可安装单元都在这里，一个目录 = 一个技能
-└── agent-extension-updater/      #    复制这个目录到宿主的技能目录即可安装
-    ├── SKILL.md                  #    主流程（宿主 Agent 的入口）
-    ├── README.md                 #    技能自述
-    ├── references/               #    按宿主选读
-    │   ├── dsh.md                #      DeepSeek Harness 适配
-    │   ├── hermes.md             #      Hermes 适配
-    │   ├── codex.md              #      Codex 适配
-    │   ├── claude-code.md        #      Claude Code 适配
-    │   ├── generic-agent.md      #      通用宿主 / 能力分级
-    │   └── auto-update.md        #      自动更新开关规范
-    ├── templates/
-    │   ├── confirmation.md       #      更新确认清单模板
-    │   └── report.md             #      更新结果报告模板
-    └── scripts/
-        ├── inventory.mjs         #      只读盘点：哪些有更新、在哪里更新
-        ├── auto-update.mjs       #      按开关自动更新（本体永不涉及）
-        └── check-skill.mjs       #      技能自检：frontmatter、相对链接、可移植性
+## 备份、恢复与验证
 
-README.md                         # 本文件：项目说明
-CHANGELOG.md                      # 版本变更记录
-docs/DESIGN.md                    # 设计说明：范围 / 支持矩阵 / 护栏 / 限制
-.github/workflows/ci.yml          # CI
+默认配置文件为 `~/.agent-extension-updater/config.json`。设置环境变量 `AGENT_EXTENSION_UPDATER_CONFIG` 可以更换位置；备份、日志和锁文件随配置存放在同一父目录。
+
+```text
+.agent-extension-updater/
+├── config.json
+├── auto-update.log.jsonl
+├── run.lock                  # 实际运行期间的排他锁
+└── backups/
+    └── <运行标识>/<扩展身份>/
+        ├── files/            # 完整目录副本
+        └── record.json       # 原路径、提交及文件哈希
 ```
 
-## 开发
+将备份恢复到一个尚不存在的新目录：
 
 ```bash
-# 与 CI 相同的检查
-node --check skills/agent-extension-updater/scripts/inventory.mjs
-node --check skills/agent-extension-updater/scripts/auto-update.mjs
-node --check skills/agent-extension-updater/scripts/check-skill.mjs
-node skills/agent-extension-updater/scripts/check-skill.mjs skills/agent-extension-updater
-node skills/agent-extension-updater/scripts/inventory.mjs --json
+node skills/agent-extension-updater/scripts/auto-update.mjs --restore "./path/to/record.json" --to "./recovered-extension"
 ```
 
-新增一个技能：在 `skills/` 下建 `<skill-name>/` 并放入 `SKILL.md`（frontmatter 必填 `name` 与 `description`，`name` 需与目录名一致且为小写连字符）。CI 会自动检查每个技能目录都有 `SKILL.md`。提交前用 `check-skill.mjs` 自检一次。
+恢复前后都会校验文件哈希。命令不会覆盖当前安装；核对恢复内容后，再按宿主要求接回安装位置。
 
-改技能内容后务必跑一次 `check-skill.mjs`：宿主的技能发现会因为 frontmatter 非法而**静默丢弃**整个技能，模型侧看不到诊断。
+更新流程遵循以下规则：
 
-## 已知限制
+- 任一条目或目录扫描检查失败，停止整轮更新并返回非零退出码。
+- 备份失败或更新前审计无法写入，不执行该项更新。
+- 更新后按精确路径复核提交、版本及技能名称，通过后才记录成功；执行或验证失败时停止本轮剩余更新。
+- 成功状态为 **“已落盘待重载”**，不代表宿主已经加载，也不代表扩展行为兼容。
+- 锁文件仅协调使用同一配置目录的进程；进程异常退出后的残留锁需要人工核实后处理。
 
-- **DSH 的 npm 插件无法在运行中的会话里自动更新**（`dsh plugin` 要求先完全退出桌面端），这类项只会被登记为"待手动"。DSH 上能自动的目前只有 Git `link:` 类插件。
-- 技能更新后**文件落盘 ≠ 已生效**，多数宿主需要重启或新会话才会加载新版本。
-- Codex / Claude Code 的插件更新接口**尚未在真实环境核实**，只做盘点与能力检测。
-- 本技能**不是常驻程序**，不自行定时运行；定时检查需由宿主的调度能力另行接入（见 `references/auto-update.md`）。
+完整规则见 [自动更新规范](skills/agent-extension-updater/references/auto-update.md)。
 
-## 状态
+## 开发与测试
 
-本地项目，**尚未发布**（无远程仓库）。许可证待定。
+```bash
+# 技能结构、frontmatter 和文档链接检查
+node skills/agent-extension-updater/scripts/check-skill.mjs skills/agent-extension-updater
+
+# 隔离回归测试
+node --test tests/updater.test.mjs
+```
+
+测试使用临时目录和本地 Git 仓库，覆盖完整更新与恢复、分支和远端变化、版本误判、本地修改、备份失败、验证失败及审计故障，无需连接真实宿主或访问网络。
+
+CI 已配置 Windows/Linux 与 Node.js 18/22 矩阵。本地 Git 测试不能替代真实宿主的升级和运行时验收。
+
+## 项目结构与文档
+
+```text
+skills/agent-extension-updater/
+├── SKILL.md
+├── README.md
+├── references/              # 宿主说明与自动更新规则
+├── templates/               # 确认与结果报告模板
+└── scripts/
+    ├── inventory.mjs        # 盘点与上游检查
+    ├── auto-update.mjs      # 开关、执行、审计与恢复入口
+    ├── lib.mjs              # 版本、Git、备份与验证
+    └── check-skill.mjs      # 技能结构检查
+tests/updater.test.mjs
+docs/DESIGN.md
+README.md
+README.en.md
+CHANGELOG.md
+```
+
+- [技能入口](skills/agent-extension-updater/SKILL.md)
+- [设计说明](docs/DESIGN.md)
+- [变更记录](CHANGELOG.md)
+
+项目仍在开发中，仓库尚未提供许可证文件。
