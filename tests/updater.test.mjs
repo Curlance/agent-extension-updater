@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { collectInventory, parseArgs } from '../skills/agent-extension-updater/scripts/inventory.mjs';
 import { runAuto, validateConfig } from '../skills/agent-extension-updater/scripts/auto-update.mjs';
-import { compareVersions, probeGit, planUpdates, backupItem, restoreBackup, updateOne, executePinned, verifyItem, identity, run } from '../skills/agent-extension-updater/scripts/lib.mjs';
+import { compareVersions, probeGit, planUpdates, backupItem, restoreBackup, updateOne, executePinned, verifyItem, identity, run, samePath } from '../skills/agent-extension-updater/scripts/lib.mjs';
 
 const scriptDir = resolve(dirname(fileURLToPath(import.meta.url)), '../skills/agent-extension-updater/scripts');
 const config = { schema_version: 1, auto_update: { enabled: true, scope: { hosts: ['codex'], kinds: ['技能', '插件'] } } };
@@ -71,9 +71,21 @@ test('Windows batch commands resolve their own directory even through PATH with 
   try {
     const result = run('updater-fixture.cmd', ['plain']);
     assert.equal(result.code, 0, result.err);
-    assert.equal(resolve(result.out), bin);
+    // %~dp0 reports the long name while TEMP may hold the 8.3 short alias; the resolved
+    // directory is what matters, not the spelling the shell happens to print.
+    assert.ok(samePath(resolve(result.out), bin), `${resolve(result.out)} 与 ${bin} 应指向同一目录`);
     assert.notEqual(run('updater-fixture.cmd', ['unsafe&argument']).code, 0);
   } finally { process.env.PATH = originalPath; }
+});
+
+test('path identity tolerates Windows short names and letter case', { skip: process.platform !== 'win32' }, (t) => {
+  const f = fixture(t), spelled = { ...f.item, path: f.item.path.toUpperCase() };
+  delete spelled.updateAction;
+  probeGit(spelled);
+  // Windows resolves this spelling to the same directory, so it must still be planned;
+  // before the fix it was misread as a shared repository subdirectory and silently skipped.
+  assert.equal(spelled.updateAction?.type, 'git-pinned', spelled.reason);
+  assert.ok(!samePath(f.item.path, join(f.root, 'somewhere else')));
 });
 
 test('Codex-only inventory finds user and project skills without DSH', (t) => {

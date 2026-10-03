@@ -70,15 +70,37 @@ export function identity(item) {
 }
 
 export function inside(parent, child) {
-  const rel = relative(resolve(parent), resolve(child));
+  const rel = relative(canonicalPath(parent), canonicalPath(child));
   return rel === '' || (!isAbsolute(rel) && rel !== '..' && !rel.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`));
+}
+
+// Windows can spell one directory several ways: its long name, its 8.3 short alias
+// (C:\Users\runneradmin vs C:\Users\RUNNER~1) and any letter case. realpathSync keeps
+// whichever spelling it is handed, while git reports the long form, so comparing paths
+// as strings misreads an ordinary skill as a shared repository subdirectory.
+export function canonicalPath(path) {
+  const strategies = [fs.realpathSync.native, fs.realpathSync].filter((fn) => typeof fn === 'function');
+  for (const realpath of strategies) {
+    try { return realpath(path); } catch { /* fall back to the next strategy */ }
+  }
+  return resolve(path);
+}
+
+export function samePath(a, b) {
+  const left = canonicalPath(a), right = canonicalPath(b);
+  const equal = process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;
+  if (equal) return true;
+  try {
+    const x = fs.statSync(left), y = fs.statSync(right);
+    return x.ino !== 0 && x.ino === y.ino && x.dev === y.dev && x.isDirectory() === y.isDirectory();
+  } catch { return false; }
 }
 
 const git = (repo, args, runner) => runner('git', ['-C', repo, ...args]);
 
 export function gitState(repo, runner = run) {
   const get = (...args) => must(git(repo, args, runner));
-  const root = fs.realpathSync(get('rev-parse', '--show-toplevel'));
+  const root = canonicalPath(get('rev-parse', '--show-toplevel'));
   const branch = get('symbolic-ref', '--quiet', '--short', 'HEAD');
   const remote = get('config', '--get', `branch.${branch}.remote`);
   const ref = get('config', '--get', `branch.${branch}.merge`);
@@ -107,7 +129,7 @@ export function probeGit(item, runner = run) {
     const ancestor = git(item.repo, ['merge-base', '--is-ancestor', state.head, target], runner);
     if (ancestor.code === 1) { item.status = '待适配'; item.reason = '本地领先或已分叉，需人工确认'; }
   }
-  if (state.root !== item.path || !fs.lstatSync(join(state.root, '.git')).isDirectory()) {
+  if (!samePath(state.root, item.path) || !fs.lstatSync(join(state.root, '.git')).isDirectory()) {
     item.reason = '共享仓库子目录或 Git worktree：需隔离 staging/人工更新，禁止整仓自动更新';
     return;
   }

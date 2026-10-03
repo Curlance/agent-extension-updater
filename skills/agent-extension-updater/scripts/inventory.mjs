@@ -4,7 +4,7 @@ import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { pathToFileURL } from 'node:url';
-import { run, must, readJson, frontmatter, probeGit, compareVersions, identity, inside } from './lib.mjs';
+import { run, must, readJson, frontmatter, probeGit, compareVersions, identity, inside, canonicalPath } from './lib.mjs';
 
 export function collectInventory(options = {}) {
   const home = options.home || homedir();
@@ -132,7 +132,7 @@ export function collectInventory(options = {}) {
           if (item.repo || fs.existsSync(join(item.path, '.git'))) throw new Error(result.err || '无法读取 Git 来源');
           continue;
         }
-        item.repo = fs.realpathSync(result.out);
+        item.repo = canonicalPath(result.out);
         item.channel = 'git';
         item.status = '待适配';
         item.reason = '已识别 Git 来源；尚未检查上游';
