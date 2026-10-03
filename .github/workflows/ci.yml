@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 脚本语法检查
+        run: |
+          node --check agent-extension-updater/scripts/inventory.mjs
+          node --check agent-extension-updater/scripts/auto-update.mjs
+          node --check agent-extension-updater/scripts/check-skill.mjs
+
+      - name: 技能结构自检
+        # frontmatter 合规、相对链接可解析、无机器专属绝对路径
+        run: node agent-extension-updater/scripts/check-skill.mjs agent-extension-updater
+
+      - name: 盘点器冒烟测试（只读）
+        # CI 上没有宿主的技能/插件目录，应输出空清单并以 0 退出
+        run: node agent-extension-updater/scripts/inventory.mjs --json
+
+      - name: 自动更新开关必须默认关闭
+        # 护栏：任何让开关默认打开的改动都必须让 CI 失败
+        run: |
+          OUT=$(node agent-extension-updater/scripts/auto-update.mjs --status)
+          echo "$OUT"
+          if ! printf '%s' "$OUT" | grep -q "已关闭"; then
+            echo "::error::自动更新开关默认必须是关闭状态"
+            exit 1
+          fi
+
+      - name: 演练路径可跑通（不改动任何东西）
+        run: node agent-extension-updater/scripts/auto-update.mjs --run --dry-run
+
+      - name: 不许提交本体的更新逻辑
+        # 范围护栏：本技能只管技能与插件
+        run: |
+          if grep -rn "kind: *'本体'\|kind: *\"本体\"" agent-extension-updater/scripts/ ; then
+            echo "::error::脚本里不应出现以'本体'为处理对象的条目"
+            exit 1
+          fi
+          echo "scope guard ok"

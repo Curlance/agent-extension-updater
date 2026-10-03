@@ -1,0 +1,7 @@
+# 统一换行符，避免 Windows / Linux 之间反复出现"已修改"假差异
+* text=auto eol=lf
+
+# Windows 专用脚本保持 CRLF
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf

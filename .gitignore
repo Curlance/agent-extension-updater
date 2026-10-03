@@ -1,0 +1,23 @@
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log*
+
+# Agent / 宿主工具的运行态（不属于项目内容）
+.hermes/
+.claude/
+.codex/
+.dsh/
+
+# 本地运行产物（开关配置与审计日志默认写在 ~/.agent-extension-updater/，不在仓库内）
+*.log
+backups/
