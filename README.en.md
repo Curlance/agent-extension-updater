@@ -195,4 +195,6 @@ CHANGELOG.md
 - [Design notes](docs/DESIGN.md)
 - [Changelog](CHANGELOG.md)
 
-The project is under development. No license file is included in the repository yet.
+The project is under development and is released under the [PolyForm Noncommercial License 1.0.0](LICENSE): **noncommercial use only**. Personal study, research, education, charity and government use need no permission; any commercial use, including internal business use, requires separate authorization.
+
+Required Notice: Copyright Curlance (https://github.com/Curlance)

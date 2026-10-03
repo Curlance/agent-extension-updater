@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### 新增
+
+- 以 [PolyForm Noncommercial 1.0.0](LICENSE) 许可发布：仅限非商业用途，商业使用需另行取得授权；中英文 README 同步更新许可证说明。
+
 ### 修复
 
 - Codex 可独立盘点用户级和项目级技能；共享路径去重并检查受影响宿主范围。Hermes Hub 来源不再被上游检查改为无来源。

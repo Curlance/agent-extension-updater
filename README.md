@@ -195,4 +195,6 @@ CHANGELOG.md
 - [设计说明](docs/DESIGN.md)
 - [变更记录](CHANGELOG.md)
 
-项目仍在开发中，仓库尚未提供许可证文件。
+项目仍在开发中，以 [PolyForm Noncommercial 1.0.0](LICENSE) 许可发布：**仅限非商业用途**。个人学习、研究、教育、慈善及政府机构使用无需授权；任何商业用途（含公司内部业务使用）需另行取得授权。
+
+Required Notice: Copyright Curlance (https://github.com/Curlance)
