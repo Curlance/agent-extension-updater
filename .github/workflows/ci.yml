@@ -11,7 +11,14 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: ['18', '22']
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     env:
       SKILL: skills/agent-extension-updater
     steps:
@@ -19,13 +26,17 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ matrix.node }}
 
       - name: 脚本语法检查
         run: |
           node --check "$SKILL/scripts/inventory.mjs"
           node --check "$SKILL/scripts/auto-update.mjs"
           node --check "$SKILL/scripts/check-skill.mjs"
+          node --check "$SKILL/scripts/lib.mjs"
+
+      - name: 隔离回归测试（含本地 Git 更新与恢复）
+        run: node --test tests/updater.test.mjs
 
       - name: 技能结构自检
         # frontmatter 合规、相对链接可解析、无机器专属绝对路径
