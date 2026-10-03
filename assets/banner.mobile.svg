@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="686" height="834" viewBox="0 0 686 834" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Extension Updater — 扩展维护，有据可查</title>
+  <desc id="desc">项目展示图，右侧示意检查、备份、固定目标提交更新和验证流程。不是实际运行结果。</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="0.6"><stop stop-color="#0b1120"/><stop offset="1" stop-color="#1b2341"/></linearGradient>
+    <linearGradient id="accent"><stop stop-color="#a5b4fc"/><stop offset="1" stop-color="#67e8f9"/></linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" stroke="#a5b4fc" stroke-opacity="0.035" fill="none"/></pattern>
+  </defs>
+  <rect x="1" y="1" width="684" height="832" rx="24" fill="url(#bg)" stroke="#303b55"/>
+  <rect x="1" y="1" width="684" height="832" rx="24" fill="url(#grid)"/>
+  <g font-family="Segoe UI,Microsoft YaHei,Noto Sans SC,Arial,sans-serif">
+    <rect x="52" y="46" width="46" height="46" rx="13" fill="#293055" stroke="#7888cb"/>
+    <path d="M75 57l12 13h-8v12h-8V70h-8z" fill="#c7d2fe"/>
+    <text x="113" y="65" font-size="21" font-weight="600" fill="#f1f5f9">Agent Extension Updater</text>
+    <text x="113" y="88" font-size="11" letter-spacing="2" fill="#93a4c5">SKILLS + PLUGINS / MAINTENANCE</text>
+    <text x="52" y="160" font-size="49" font-weight="700" fill="#f8fafc">扩展维护，</text>
+    <text x="52" y="220" font-size="49" font-weight="700" fill="url(#accent)">有据可查。</text>
+    <text x="54" y="270" font-size="19" fill="#cbd5e1">从安装盘点，到可验证的更新结果。</text>
+    <text x="54" y="302" font-size="16" fill="#93a4c5">Agent Skill + 零依赖 Node.js CLI</text>
+    <rect x="52" y="328" width="107" height="31" rx="15" fill="#1e2a41" stroke="#394964"/>
+    <text x="106" y="349" text-anchor="middle" font-size="13" fill="#c7d2fe">Node.js 18+</text>
+    <rect x="169" y="328" width="145" height="31" rx="15" fill="#1e2a41" stroke="#394964"/>
+    <text x="241" y="349" text-anchor="middle" font-size="13" fill="#c7d2fe">Windows / Linux</text>
+    <text x="54" y="386" font-size="13" fill="#8294b5">DSH · Codex · Claude Code · Hermes</text>
+  </g>
+  <g transform='translate(-593 360)' font-family='Segoe UI,Microsoft YaHei,Noto Sans SC,Arial,sans-serif'>
+    <rect x="645" y="52" width="582" height="394" rx="17" fill="#0c1527" stroke="#3b4965"/>
+    <path d="M645 97h582" stroke="#303e56"/>
+    <circle cx="667" cy="76" r="4" fill="#637194"/><circle cx="683" cy="76" r="4" fill="#637194"/><circle cx="699" cy="76" r="4" fill="#637194"/>
+    <text x="724" y="81" font-size="12" fill="#9aaccb">WORKFLOW / 流程示意</text>
+    <rect x="1097" y="65" width="108" height="22" rx="11" fill="#172d3a"/>
+    <text x="1151" y="80" text-anchor="middle" font-size="11" fill="#67e8f9">按授权范围</text>
+    <g font-size="14" fill="#dce5f4">
+      <circle cx="681" cy="139" r="13" fill="#293055"/><text x="681" y="143" text-anchor="middle" font-size="11" fill="#c7d2fe">01</text>
+      <text x="708" y="144">盘点扩展与来源</text><text x="1197" y="144" text-anchor="end" font-size="12" fill="#91a4c5">宿主 / 路径 / 版本</text>
+      <path d="M681 155v20" stroke="#405073"/>
+      <circle cx="681" cy="194" r="13" fill="#293055"/><text x="681" y="198" text-anchor="middle" font-size="11" fill="#c7d2fe">02</text>
+      <text x="708" y="199">检查上游并确认范围</text><text x="1197" y="199" text-anchor="end" font-size="12" fill="#91a4c5">版本 / 授权</text>
+      <path d="M681 210v20" stroke="#405073"/>
+      <circle cx="681" cy="249" r="13" fill="#24384d"/><text x="681" y="253" text-anchor="middle" font-size="11" fill="#a5d9ed">03</text>
+      <text x="708" y="254">完整备份与文件校验</text><text x="1197" y="254" text-anchor="end" font-size="12" fill="#91a4c5">SHA-256</text>
+      <path d="M681 265v20" stroke="#405073"/>
+      <circle cx="681" cy="304" r="13" fill="#1c3943"/><text x="681" y="308" text-anchor="middle" font-size="11" fill="#67e8f9">04</text>
+      <text x="708" y="309">更新到固定目标提交</text><text x="1197" y="309" text-anchor="end" font-size="12" fill="#91a4c5">符合条件的 Git 扩展</text>
+    </g>
+    <rect x="666" y="345" width="540" height="79" rx="11" fill="#142636" stroke="#294659"/>
+    <circle cx="689" cy="370" r="4" fill="#67e8f9"/>
+    <text x="704" y="375" font-size="14" font-weight="600" fill="#b4ecf3">验证精确路径、提交与版本</text>
+    <text x="684" y="402" font-size="12" fill="#97aec6">记录结果与备份位置 · 已落盘待宿主重载</text>
+  </g>
+</svg>

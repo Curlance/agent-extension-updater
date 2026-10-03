@@ -11,7 +11,11 @@
       <stop offset="65%" stop-color="#ffffff" stop-opacity="0"/>
     </linearGradient>
   </defs>
-  <rect x="2" y="2" width="124" height="124" rx="30" fill="url(#tile)"/>
-  <rect x="2" y="2" width="124" height="124" rx="30" fill="url(#sheen)"/>
-  <path d="M64 28 94 62H78v34H50V62H34z" fill="#ffffff"/>
+  <rect x="2" y="2" width="124" height="124" rx="30" fill="#10182c" stroke="#394868" stroke-width="2"/>
+  <rect x="10" y="10" width="108" height="108" rx="24" fill="url(#tile)" opacity="0.18"/>
+  <path d="M91 39a36 36 0 1 0 8 40" fill="none" stroke="url(#tile)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M79 37l16 1-1-16" fill="none" stroke="#a5b4fc" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M64 41 82 61H72v25H56V61H46z" fill="#f1f5ff"/>
+  <circle cx="96" cy="89" r="13" fill="#0f2635" stroke="#67e8f9" stroke-width="2"/>
+  <path d="m90 89 4 4 8-9" fill="none" stroke="#67e8f9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

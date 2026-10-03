@@ -1,30 +1,28 @@
-<div align="center">
-  <img src="assets/logo.svg" alt="agent-extension-updater" width="96" height="96">
-  <h1>agent-extension-updater</h1>
-  <p>
-    <b>A unified maintenance workflow for AI agent skills and plugins</b><br>
-    Inventory installed extensions → Check for updates → Back up files → Apply updates → Verify results
-  </p>
-  <p><a href="README.md">简体中文</a> | <a href="README.en.md">English</a></p>
-  <p>
-    <a href="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml"><img src="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-    <img src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&amp;logoColor=white" alt="Node.js 18+">
-    <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-2563eb" alt="Windows | Linux">
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-4f46e5" alt="PolyForm Noncommercial 1.0.0"></a>
-  </p>
-  <p>
-    <a href="#quick-start">Quick start</a> ·
-    <a href="#current-support">Current support</a> ·
-    <a href="#install-as-an-agent-skill">Install as a Skill</a> ·
-    <a href="#backup-and-recovery">Backup and recovery</a> ·
-    <a href="#development-and-tests">Development and tests</a> ·
-    <a href="docs/DESIGN.md">Design notes</a> ·
-    <a href="CHANGELOG.md">Changelog</a>
-  </p>
-  <p><img src="assets/flow.svg" alt="Extension maintenance flow: inventory → check upstream → confirm scope → back up → update → verify" width="820"></p>
-</div>
+<p align="center"><img src="assets/logo.svg" alt="Agent Extension Updater" width="80" height="80"></p>
+<h1 align="center">Agent Extension Updater</h1>
+<p align="center"><strong>Maintain extensions. Keep the evidence.</strong></p>
+<p align="center">A unified maintenance workflow for AI agent skills and plugins</p>
+<p align="center"><a href="README.md">简体中文</a> · <strong>English</strong></p>
+<p align="center">
+  <a href="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml"><img src="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&amp;logoColor=white" alt="Node.js 18+">
+  <img src="https://img.shields.io/badge/Windows_%7C_Linux-334155" alt="Windows / Linux">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Noncommercial-6366f1" alt="PolyForm Noncommercial 1.0.0"></a>
+</p>
+<p align="center">
+  <a href="#quick-start">Quick start</a> · <a href="#current-support">Support</a> ·
+  <a href="#install-as-an-agent-skill">Install Skill</a> · <a href="#backup-and-recovery">Recovery</a> ·
+  <a href="docs/DESIGN.md">Design notes</a>
+</p>
 
-The project provides a skill that clients supporting Agent Skills can load, plus a standalone Node.js command-line tool. You can have an agent assist with the workflow, or run the scripts directly to check extension status.
+<picture>
+  <source media='(max-width: 600px)' srcset='assets/banner.mobile.en.svg'>
+  <img src='assets/banner.en.svg' alt='Agent Extension Updater workflow illustration' width='1280'>
+</picture>
+
+An **Agent Skill** plus a standalone **Node.js CLI**. Let your agent follow the maintenance workflow, or run the scripts directly to inspect extension status.
+
+> **Check before applying.** Automatic updates are disabled by default; enabling them does not bypass eligibility checks. Success means files are updated and awaiting host reload. Runtime loading and compatibility still need verification.
 
 ## What it does
 
@@ -35,6 +33,12 @@ The project provides a skill that clients supporting Agent Skills can load, plus
 - **Leave an operation record**: records update targets, backup locations, and verification results for later tracing.
 
 This project maintains skills and plugins only. It does not manage the agent client itself, standalone MCP services, models, or the operating system.
+
+## Maintenance workflow
+
+![Six steps: inventory, check upstream, confirm scope, back up, update, verify](assets/flow.en.svg)
+
+A failed check stops the entire run. An execution or verification failure stops remaining updates and returns a nonzero exit code. See [backup and recovery](#backup-and-recovery).
 
 ## Current support
 

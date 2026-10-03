@@ -1,30 +1,28 @@
-<div align="center">
-  <img src="assets/logo.svg" alt="agent-extension-updater" width="96" height="96">
-  <h1>agent-extension-updater</h1>
-  <p>
-    <b>为 AI Agent 的技能（skills）与插件（plugins）提供统一的维护流程</b><br>
-    盘点安装情况 → 检查更新 → 备份文件 → 执行更新 → 验证结果
-  </p>
-  <p><a href="README.md">简体中文</a> | <a href="README.en.md">English</a></p>
-  <p>
-    <a href="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml"><img src="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-    <img src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&amp;logoColor=white" alt="Node.js 18+">
-    <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-2563eb" alt="Windows | Linux">
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-4f46e5" alt="PolyForm Noncommercial 1.0.0"></a>
-  </p>
-  <p>
-    <a href="#快速开始">快速开始</a> ·
-    <a href="#当前支持范围">支持范围</a> ·
-    <a href="#作为-agent-skill-安装">安装为 Skill</a> ·
-    <a href="#备份与恢复">备份与恢复</a> ·
-    <a href="#开发与测试">开发与测试</a> ·
-    <a href="docs/DESIGN.md">设计说明</a> ·
-    <a href="CHANGELOG.md">变更记录</a>
-  </p>
-  <p><img src="assets/flow.svg" alt="扩展维护流程：盘点 → 检查上游 → 确认范围 → 备份 → 更新 → 验证" width="820"></p>
-</div>
+<p align="center"><img src="assets/logo.svg" alt="Agent Extension Updater" width="80" height="80"></p>
+<h1 align="center">Agent Extension Updater</h1>
+<p align="center"><strong>扩展维护，有据可查。</strong></p>
+<p align="center">为 AI Agent 的 skills 与 plugins 提供统一维护流程</p>
+<p align="center"><strong>简体中文</strong> · <a href="README.en.md">English</a></p>
+<p align="center">
+  <a href="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml"><img src="https://github.com/Curlance/agent-extension-updater/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&amp;logoColor=white" alt="Node.js 18+">
+  <img src="https://img.shields.io/badge/Windows_%7C_Linux-334155" alt="Windows / Linux">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Noncommercial-6366f1" alt="PolyForm Noncommercial 1.0.0"></a>
+</p>
+<p align="center">
+  <a href="#快速开始">快速开始</a> · <a href="#当前支持范围">支持范围</a> ·
+  <a href="#作为-agent-skill-安装">安装 Skill</a> · <a href="#备份与恢复">备份与恢复</a> ·
+  <a href="docs/DESIGN.md">设计说明</a>
+</p>
 
-项目包含一份可被支持 Agent Skills 的客户端加载的技能，以及可独立运行的 Node.js 命令行工具。你可以让 Agent 按流程协助维护，也可以直接运行脚本检查扩展状态。
+<picture>
+  <source media='(max-width: 600px)' srcset='assets/banner.mobile.svg'>
+  <img src='assets/banner.svg' alt='Agent Extension Updater 项目展示与维护流程示意' width='1280'>
+</picture>
+
+一份可由 Agent 加载的 **Skill**，加上一套可独立运行的 **Node.js 命令行工具**。让 Agent 按流程协助维护，或直接运行脚本检查扩展状态。
+
+> **先检查，再执行。** 自动更新默认关闭；启用后仍须满足全部更新条件。成功状态为“已落盘待重载”，宿主加载与行为兼容需另行确认。
 
 ## 能做什么
 
@@ -35,6 +33,12 @@
 - **留下操作记录**：记录更新目标、备份位置和验证结果，便于追溯。
 
 本项目只维护技能与插件，不管理 Agent 客户端本身、独立 MCP 服务、模型或操作系统。
+
+## 维护流程
+
+![六步维护流程：盘点、检查上游、确认范围、备份、更新、验证](assets/flow.svg)
+
+检查失败会停止整轮；执行或验证失败会停止后续更新并返回非零退出码。详见 [备份与恢复](#备份与恢复)。
 
 ## 当前支持范围
 

@@ -6,6 +6,7 @@
 
 ### 新增
 
+- 优化中英文仓库首页：精简居中标题与导航、新版维护图标和项目展示横幅、独立六步流程图；英文页使用配套英文图示，小屏使用纵向横幅。
 - 以 [PolyForm Noncommercial 1.0.0](LICENSE) 许可发布：仅限非商业用途，商业使用需另行取得授权；中英文 README 同步更新许可证说明。
 - README 改为徽章式首页：居中标题、状态徽章、导航与流程图；新增 `assets/logo.svg` 与 `assets/flow.svg`。
 
@@ -31,6 +32,7 @@
 首个版本。技能可被支持 Agent Skills 的宿主加载，负责盘点并更新 **skills 与 plugins**。
 
 ### 新增
+
 
 - `SKILL.md`：主流程（识别宿主 → 只读检查 → 主动确认 → 备份执行 → 验证报告），含六条红线与收尾自检清单。
 - `references/dsh.md`：DeepSeek Harness 适配。基于本机源码与实测：技能扫描根与 rank、热加载边界、profile bundles 的自动登记与摘除、`link:` 插件不留源码副本、DSH 插件必须先退出桌面端。
